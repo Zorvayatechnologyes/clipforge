@@ -1,0 +1,24 @@
+services:
+  clipforge:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - clipforge-data:/data
+      # reuse a model cache across restarts
+      - clipforge-models:/root/.cache/huggingface
+    environment:
+      CLIPFORGE_WHISPER_MODEL: small
+      CLIPFORGE_WHISPER_DEVICE: cpu
+      CLIPFORGE_MAX_CLIPS: "6"
+      # point this at an Ollama container or your host machine if you have one
+      # CLIPFORGE_OLLAMA_URL: http://host.docker.internal:11434
+      CLIPFORGE_USE_LLM: "false"
+    # transcription is CPU hungry
+    cpus: "4"
+    mem_limit: 4g
+    restart: unless-stopped
+
+volumes:
+  clipforge-data:
+  clipforge-models:
