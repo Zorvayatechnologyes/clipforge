@@ -1,0 +1,28 @@
+[build]
+  publish = "."
+  command = ""
+
+# This folder IS the website. It is a single static page that talks to a
+# ClipForge engine over HTTP. Set the engine URL in the page itself (it is
+# remembered in localStorage), or hard-code it here by uncommenting the
+# snippet below and renaming this file to netlify.toml -> already is one.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Optional: bake the engine address into the page so visitors do not have to
+# paste it. Uncomment and put your deployed API URL here, then rebuild.
+# [[redirects]]
+#   from = "/engine.json"
+#   to = "/engine.json"
+#   status = 200
