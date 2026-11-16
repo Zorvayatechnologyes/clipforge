@@ -1,0 +1,36 @@
+# One-click deploy of the ClipForge engine on Render (https://render.com).
+# Dashboard -> New -> Blueprint -> point at your repo.
+#
+# Do NOT use the free plan: ffmpeg + Whisper need real CPU and at least 2 GB of
+# RAM, and a persistent disk for the clips. The cheapest plan that works is
+# "standard".
+services:
+  - type: web
+    name: clipforge-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: standard
+    region: singapore
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: clipforge-data
+      mountPath: /data
+      sizeGB: 20
+    envVars:
+      - key: CLIPFORGE_WORK
+        value: /data/work
+      - key: CLIPFORGE_OUTPUT
+        value: /data/clips
+      - key: CLIPFORGE_WHISPER_MODEL
+        value: small
+      - key: CLIPFORGE_WHISPER_DEVICE
+        value: cpu
+      - key: CLIPFORGE_MAX_CLIPS
+        value: "6"
+      # keep the web page able to call this API from another origin
+      - key: CLIPFORGE_ALLOWED_ORIGINS
+        value: "*"
+      # turn on if you also run Ollama somewhere reachable
+      - key: CLIPFORGE_USE_LLM
+        value: "false"
