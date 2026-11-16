@@ -1,0 +1,30 @@
+# fly.io deploy: `fly launch --no-deploy` then `fly deploy`
+app = "clipforge-api"
+primary_region = "bom"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  CLIPFORGE_WORK = "/data/work"
+  CLIPFORGE_OUTPUT = "/data/clips"
+  CLIPFORGE_WHISPER_MODEL = "small"
+  CLIPFORGE_WHISPER_DEVICE = "cpu"
+  CLIPFORGE_ALLOWED_ORIGINS = "*"
+  CLIPFORGE_USE_LLM = "false"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 2
+
+[mounts]
+  source = "clipforge_data"
+  destination = "/data"
