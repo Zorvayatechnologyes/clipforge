@@ -1,0 +1,11 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+python-multipart>=0.0.9
+yt-dlp>=2024.08.06
+faster-whisper>=1.0.3
+# PyAV 16+ dropped the metadata_errors kwarg that faster-whisper still
+# passes, which breaks audio decoding at runtime. Keep it below 16.
+av<16
+numpy>=1.24
+imageio-ffmpeg>=0.5.1
