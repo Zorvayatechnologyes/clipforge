@@ -3,6 +3,7 @@ name: probe
 on:
   push:
     paths:
+      - 'tools/probe.py'
       - '.github/workflows/probe.yml'
   workflow_dispatch:
 
@@ -12,36 +13,20 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: install yt-dlp
+      - name: install
         run: pip install -q yt-dlp
-      - name: try youtube
+      - name: probe
+        run: python tools/probe.py || true
+      - name: save result
         run: |
-          {
-            echo "yt-dlp $(yt-dlp --version)"
-            echo "--- metadata attempt ---"
-          } > probe.txt
-          yt-dlp -J --no-warnings --skip-download "https://www.youtube.com/watch" > out.json 2> err.txt
-          echo "EXIT=$?" >> probe.txt
-          head -c 1200 err.txt >> probe.txt
-          echo "" >> probe.txt
-          echo "TITLE=$(python3 -c \"import json;print(json.load(open('out.json'))['title'])\" 2>/dev/null || echo none)" >> probe.txt
-          cat probe.txt
-      - name: report
-        run: |
-          echo '### probe result' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          head -c 3000 probe.txt >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-      - name: commit result
-        run: |
-          git config user.name "clipforge-probe"
-          git config user.email "probe@users.noreply.github.com"
+          git config user.name clipforge-probe
+          git config user.email probe@users.noreply.github.com
           git add -f probe.txt
-          git commit -m "probe result" || echo "nothing to commit"
-          git push || echo "push failed"
+          git commit -m "probe result" || true
+          git push || true
