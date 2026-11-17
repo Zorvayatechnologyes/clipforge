@@ -56,6 +56,7 @@ def run(
         job_dir,
         max_height=settings.max_source_height,
         cookies_from_browser=settings.cookies_from_browser,
+        cookies_file=settings.cookies_file,
         progress=_scaled(progress, 0.01, 0.22),
     )
     info = ffmpeg.probe(source_path)
