@@ -83,6 +83,13 @@ VOD this adds two or three minutes, not an hour.
 
 If Ollama is not running the app still works and says so in the job warnings.
 
+## Where the clips come from
+
+By default the picks are **spread across the whole video**: a three-hour stream
+gives you moments from across the run, not six clips from the same five loud
+minutes. Turn it off with `--no-spread` or `CLIPFORGE_SPREAD=false` if you would
+rather have the absolute best-scoring moments regardless of where they sit.
+
 ## What a clip looks like
 
 - 1080×1920 vertical, source centred, with a blurred, darkened copy of the frame
@@ -98,6 +105,20 @@ Untick *Vertical* for the original framing.
 ---
 
 ## Install
+
+**No terminal needed.** Download and unzip the project, then double-click:
+
+| your machine | double-click |
+|---|---|
+| Windows | `Start ClipForge.bat` |
+| macOS | `Start ClipForge.command` |
+| Linux | run `bash run.sh` |
+
+It creates its own Python environment, installs what it needs, and opens
+`http://127.0.0.1:8000` in your browser. The first run takes a few minutes;
+after that it starts in seconds. Keep the window open while you use it.
+
+The manual route, if you prefer it:
 
 You need Python 3.10+ and **ffmpeg** on your PATH.
 
@@ -172,6 +193,7 @@ Environment variables (or a `.env` file, see `.env.example`):
 | `CLIPFORGE_LANGUAGE` | auto | force a language, e.g. `en`, `hi` |
 | `CLIPFORGE_MIN_CLIP` / `MAX_CLIP` | `18` / `55` | clip length bounds, seconds |
 | `CLIPFORGE_MAX_CLIPS` | `6` | how many clips per job |
+| `CLIPFORGE_SPREAD` | `true` | spread clips across the whole video instead of clustering them |
 | `CLIPFORGE_VERTICAL` | `true` | 9:16 reframe |
 | `CLIPFORGE_SUBTITLES` | `true` | burn captions |
 | `CLIPFORGE_SUB_FONT` | `DejaVu Sans` | caption font family |
@@ -193,7 +215,7 @@ CLIPFORGE_ALLOWED_ORIGINS=https://your-site.netlify.app
 ```
 
 CLI flags: `-n/--clips`, `--min`, `--max`, `--horizontal`, `--no-subs`,
-`--no-llm`, `--model`, `--language`, `-o/--out`, `--json`.
+`--no-llm`, `--no-spread`, `--model`, `--language`, `-o/--out`, `--json`.
 
 ## HTTP API
 
@@ -251,6 +273,8 @@ clipforge/
 │   ├── 404.html
 │   └── robots.txt
 ├── tests/                scoring, API, and a synthetic end-to-end render
+├── Start ClipForge.bat   double-click launcher (Windows)
+├── Start ClipForge.command  double-click launcher (macOS)
 ├── Dockerfile            the engine image
 ├── render.yaml / fly.toml / railway.json
 └── requirements.txt
