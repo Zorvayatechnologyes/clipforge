@@ -60,6 +60,9 @@ class Settings:
     max_clip: float = 55.0
     max_clips: int = 6
     window_step: float = 3.0
+    # spread clips across the whole video instead of clustering them
+    # around the single loudest stretch
+    spread: bool = True
 
     # --- output ---
     vertical: bool = True
@@ -115,6 +118,7 @@ def load_settings() -> Settings:
         max_clip=_env_float("CLIPFORGE_MAX_CLIP", 55.0),
         max_clips=_env_int("CLIPFORGE_MAX_CLIPS", 6),
         window_step=_env_float("CLIPFORGE_WINDOW_STEP", 3.0),
+        spread=_env_bool("CLIPFORGE_SPREAD", True),
         vertical=_env_bool("CLIPFORGE_VERTICAL", True),
         subtitles=_env_bool("CLIPFORGE_SUBTITLES", True),
         sub_font=_env_str("CLIPFORGE_SUB_FONT", "DejaVu Sans") or "DejaVu Sans",
