@@ -34,3 +34,7 @@ services:
       # turn on if you also run Ollama somewhere reachable
       - key: CLIPFORGE_USE_LLM
         value: "false"
+      # YouTube refuses datacenter IPs, so a hosted engine needs cookies.
+      # Upload a cookies.txt to the /data disk, then uncomment this line:
+      # - key: CLIPFORGE_COOKIES_FILE
+      #   value: /data/cookies.txt
