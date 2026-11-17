@@ -12,6 +12,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from clipforge import download  # noqa: E402
 
+URL = "https://youtu.be/abc123"
+
 
 class FakeYoutubeDL:
     """Stands in for yt_dlp.YoutubeDL and records the options it was given."""
@@ -52,7 +54,7 @@ def test_cookies_file_is_handed_to_yt_dlp(tmp_path, fake_ytdlp):
     cookies.write_text("# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSID\tx\n")
 
     path = download.fetch(
-        "https://www.youtube.com/watch", tmp_path,
+        URL, tmp_path,
         cookies_file=str(cookies),
     )
     assert path == fake_ytdlp
@@ -62,25 +64,25 @@ def test_cookies_file_is_handed_to_yt_dlp(tmp_path, fake_ytdlp):
 def test_missing_cookies_file_fails_loudly(tmp_path, fake_ytdlp):
     with pytest.raises(download.DownloadError, match="cookies file not found"):
         download.fetch(
-            "https://www.youtube.com/watch", tmp_path,
+            URL, tmp_path,
             cookies_file=str(tmp_path / "nope.txt"),
         )
 
 
 def test_browser_cookies_are_handed_to_yt_dlp(tmp_path, fake_ytdlp):
-    download.fetch("https://www.youtube.com/watch", tmp_path,
+    download.fetch(URL, tmp_path,
                    cookies_from_browser="chrome")
     assert FakeYoutubeDL.opts["cookiesfrombrowser"] == ("chrome",)
     assert "cookiefile" not in FakeYoutubeDL.opts
 
 
 def test_no_cookies_means_no_cookie_options(tmp_path, fake_ytdlp):
-    download.fetch("https://www.youtube.com/watch", tmp_path)
+    download.fetch(URL, tmp_path)
     assert "cookiefile" not in FakeYoutubeDL.opts
     assert "cookiesfrombrowser" not in FakeYoutubeDL.opts
 
 
 def test_format_selection_prefers_a_capped_merge(tmp_path, fake_ytdlp):
-    download.fetch("https://www.youtube.com/watch", tmp_path, max_height=720)
+    download.fetch(URL, tmp_path, max_height=720)
     assert "720" in FakeYoutubeDL.opts["format"]
     assert FakeYoutubeDL.opts["merge_output_format"] == "mp4"
