@@ -45,8 +45,22 @@ and sharing it through the tunnel script — is the architecture that actually
 works. If you must host it, pass cookies with
 `CLIPFORGE_COOKIES_FROM_BROWSER`, though they expire.
 
-**Hosted path (for non-YouTube sources).** If you only need other yt-dlp
-supported sites, deploy the engine first, because the page needs its address.
+**Hosted path, with cookies.** A hosted engine can work for YouTube, but only
+if it presents cookies from a logged-in browser — that is what gets it past the
+datacenter-IP check:
+
+```bash
+# on your own machine, once (needs the browser you use for YouTube)
+yt-dlp --cookies-from-browser chrome --cookies cookies.txt \
+       --skip-download "https://www.youtube.com/watch?v=jNQXAC9Kp3s"
+```
+
+Copy `cookies.txt` onto the server's data disk (Render: the `/data` mount) and
+set `CLIPFORGE_COOKIES_FILE=/data/cookies.txt`. The job then downloads normally
+from the cloud. Cookies expire after a few weeks to months, so you will need to
+refresh the file; when it goes stale every job fails with a clear message rather
+than silently returning nothing. Treat the file like a password — it is access
+to your YouTube account — and never commit it.
 
 1. **Engine → Render.** Fork/push this repo to GitHub, then on
    [render.com](https://render.com) choose *New → Blueprint* and point it at the
@@ -221,6 +235,7 @@ Environment variables (or a `.env` file, see `.env.example`):
 | `CLIPFORGE_ALLOWED_ORIGINS` | `*` | comma-separated origins allowed by CORS |
 | `CLIPFORGE_MAX_SOURCE_HEIGHT` | `1080` | download resolution cap |
 | `CLIPFORGE_COOKIES_FROM_BROWSER` | — | `chrome`, `firefox`, `edge`… for age-gated videos |
+| `CLIPFORGE_COOKIES_FILE` | — | Netscape `cookies.txt`; required for a cloud-hosted engine |
 | `CLIPFORGE_WORK` / `CLIPFORGE_OUTPUT` | `data/work` / `data/clips` | folders |
 | `CLIPFORGE_KEEP_SOURCE` | `false` | keep the downloaded video |
 | `CLIPFORGE_FFMPEG` | auto | explicit ffmpeg path |
