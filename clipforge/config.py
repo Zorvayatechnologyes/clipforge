@@ -76,6 +76,9 @@ class Settings:
     # --- download ---
     max_source_height: int = 1080
     cookies_from_browser: str | None = None
+    # path to a Netscape cookies.txt. Required when the engine runs on a
+    # cloud host, because YouTube refuses to serve datacenter IPs.
+    cookies_file: str | None = None
     keep_source: bool = False
 
     # --- binaries ---
@@ -128,6 +131,7 @@ def load_settings() -> Settings:
         preset=_env_str("CLIPFORGE_PRESET", "veryfast") or "veryfast",
         max_source_height=_env_int("CLIPFORGE_MAX_SOURCE_HEIGHT", 1080),
         cookies_from_browser=_env_str("CLIPFORGE_COOKIES_FROM_BROWSER", None),
+        cookies_file=_env_str("CLIPFORGE_COOKIES_FILE", None),
         keep_source=_env_bool("CLIPFORGE_KEEP_SOURCE", False),
         ffmpeg_path=_env_str("CLIPFORGE_FFMPEG", None),
         allowed_origins=_env_str("CLIPFORGE_ALLOWED_ORIGINS", "*") or "*",
