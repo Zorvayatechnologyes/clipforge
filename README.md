@@ -34,7 +34,19 @@ bash run.sh          # creates a venv, installs, starts the engine
 # open http://127.0.0.1:8000 — page and engine on one address
 ```
 
-**Hosted path.** Deploy the engine first, because the page needs its address.
+**Why the engine is not hosted on the internet.** YouTube refuses to serve
+videos to datacenter IPs — it answers "Sign in to confirm you're not a bot" and
+returns no video formats at all. This is not a guess: the same block was
+measured from a GitHub Actions runner across six player clients and two videos,
+12 out of 12 attempts returning zero formats. Render, Railway, Fly.io and any
+VPS sit on the same kind of IP, so a cloud-hosted engine fails at the download
+step no matter how it is configured. Running the engine on your own machine —
+and sharing it through the tunnel script — is the architecture that actually
+works. If you must host it, pass cookies with
+`CLIPFORGE_COOKIES_FROM_BROWSER`, though they expire.
+
+**Hosted path (for non-YouTube sources).** If you only need other yt-dlp
+supported sites, deploy the engine first, because the page needs its address.
 
 1. **Engine → Render.** Fork/push this repo to GitHub, then on
    [render.com](https://render.com) choose *New → Blueprint* and point it at the
@@ -113,6 +125,12 @@ Untick *Vertical* for the original framing.
 | Windows | `Start ClipForge.bat` |
 | macOS | `Start ClipForge.command` |
 | Linux | run `bash run.sh` |
+
+Want to use it from your phone or another computer? Double-click
+**`Share ClipForge`** instead. It does the same thing and then opens a free
+Cloudflare tunnel, printing a public `https://….trycloudflare.com` address you
+paste into the Engine box on the site. The address changes each time and only
+lives while that window is open.
 
 It creates its own Python environment, installs what it needs, and opens
 `http://127.0.0.1:8000` in your browser. The first run takes a few minutes;
@@ -275,6 +293,8 @@ clipforge/
 ├── tests/                scoring, API, and a synthetic end-to-end render
 ├── Start ClipForge.bat   double-click launcher (Windows)
 ├── Start ClipForge.command  double-click launcher (macOS)
+├── Share ClipForge.bat   launcher + public tunnel (Windows)
+├── Share ClipForge.command  launcher + public tunnel (macOS)
 ├── Dockerfile            the engine image
 ├── render.yaml / fly.toml / railway.json
 └── requirements.txt
