@@ -34,6 +34,9 @@ def build_parser() -> argparse.ArgumentParser:
                         help="keep the original 16:9 framing instead of vertical")
     parser.add_argument("--no-subs", action="store_true", help="do not burn in captions")
     parser.add_argument("--no-llm", action="store_true", help="skip the Ollama ranking pass")
+    parser.add_argument("--no-spread", action="store_true",
+                        help="cluster the best clips instead of spreading them "
+                             "across the whole video")
     parser.add_argument("--model", default=None,
                         help="whisper model: tiny/base/small/medium/large-v3")
     parser.add_argument("--language", default=None, help="force a language, e.g. en or hi")
@@ -60,6 +63,8 @@ def main(argv: list[str] | None = None) -> int:
         overrides["subtitles"] = False
     if args.no_llm:
         overrides["use_llm"] = False
+    if args.no_spread:
+        overrides["spread"] = False
     if args.model:
         overrides["whisper_model"] = args.model
     if args.language:
