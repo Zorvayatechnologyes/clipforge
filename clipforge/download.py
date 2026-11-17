@@ -24,7 +24,9 @@ def is_url(value: str) -> bool:
 
 
 def fetch(source: str, target_dir: Path, *, max_height: int = 1080,
-          cookies_from_browser: str | None = None, progress: Progress = None) -> Path:
+          cookies_from_browser: str | None = None,
+          cookies_file: str | None = None,
+          progress: Progress = None) -> Path:
     """Return a local video path for `source` (URL or existing file)."""
     source = source.strip()
     if not source:
@@ -87,6 +89,14 @@ def fetch(source: str, target_dir: Path, *, max_height: int = 1080,
     }
     if cookies_from_browser:
         options["cookiesfrombrowser"] = (cookies_from_browser,)
+    if cookies_file:
+        cookie_path = Path(cookies_file).expanduser()
+        if not cookie_path.exists():
+            raise DownloadError(
+                f"cookies file not found: {cookie_path}. Export a Netscape "
+                "cookies.txt and point CLIPFORGE_COOKIES_FILE at it."
+            )
+        options["cookiefile"] = str(cookie_path)
 
     if progress:
         progress(0.01, "resolving video")
