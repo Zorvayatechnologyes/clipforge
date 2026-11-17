@@ -92,6 +92,63 @@ def test_suppress_respects_limit():
     assert len(highlight.suppress(cands, limit=3)) == 3
 
 
+def test_spread_select_covers_the_whole_video():
+    duration = 1800.0
+    cands = [highlight.Candidate(100.0 + i * 20, 130.0 + i * 20, score=0.9 - i * 0.01)
+             for i in range(10)]                       # loud cluster, early
+    cands += [highlight.Candidate(float(t), t + 30.0, score=0.5)
+              for t in (400, 700, 1000, 1300, 1600)]   # quieter, spread out
+
+    picked = highlight.spread_select(cands, limit=6, duration=duration)
+    assert len(picked) == 6
+    starts = sorted(c.start for c in picked)
+    assert starts[-1] - starts[0] > duration * 0.5, f"clustered at {starts}"
+
+
+def test_plain_suppression_would_have_clustered():
+    duration = 1800.0
+    cands = [highlight.Candidate(100.0 + i * 20, 130.0 + i * 20, score=0.9 - i * 0.01)
+             for i in range(10)]
+    cands += [highlight.Candidate(float(t), t + 30.0, score=0.5)
+              for t in (400, 700, 1000, 1300, 1600)]
+    clustered = highlight.suppress(cands, limit=6, max_overlap=0.3)
+    spread = highlight.spread_select(cands, limit=6, duration=duration)
+
+    def span(picked):
+        return max(c.start for c in picked) - min(c.start for c in picked)
+
+    assert span(clustered) < span(spread), (
+        f"suppression spans {span(clustered):.0f}s, spread spans {span(spread):.0f}s"
+    )
+
+
+def test_spread_respects_the_limit():
+    cands = [highlight.Candidate(i * 60.0, i * 60.0 + 30.0, score=0.5) for i in range(20)]
+    assert len(highlight.spread_select(cands, limit=4, duration=1200.0)) == 4
+
+
+def test_spread_fills_the_quota_on_a_short_video():
+    # non-overlapping candidates, so four really do fit
+    cands = [highlight.Candidate(i * 10.0, i * 10.0 + 8.0, score=0.6) for i in range(6)]
+    picked = highlight.spread_select(cands, limit=4, duration=60.0)
+    assert len(picked) == 4
+
+
+def test_spread_never_returns_overlapping_clips():
+    cands = [highlight.Candidate(i * 5.0, i * 5.0 + 25.0, score=0.7) for i in range(30)]
+    picked = highlight.spread_select(cands, limit=5, duration=150.0)
+    for i, a in enumerate(picked):
+        for b in picked[i + 1:]:
+            overlap = highlight._overlap(a.start, a.end, b.start, b.end)
+            assert overlap <= 0.3 + 1e-9
+
+
+def test_spread_handles_single_clip_and_empty_input():
+    assert highlight.spread_select([], limit=5, duration=100.0) == []
+    one = [highlight.Candidate(0.0, 20.0, score=0.5)]
+    assert len(highlight.spread_select(one, limit=1, duration=100.0)) == 1
+
+
 def test_speech_score_rewards_normal_talking():
     assert highlight.speech_score(60, 20.0) > 0.8     # 3 words/sec
     assert highlight.speech_score(2, 20.0) == 0.0     # near silence
