@@ -248,6 +248,53 @@ def _collapse_repeats(words: list[str]) -> list[str]:
     return words
 
 
+def spread_select(
+    cands: list[Candidate],
+    limit: int,
+    duration: float,
+    max_overlap: float = 0.3,
+) -> list[Candidate]:
+    """Pick `limit` clips spread across the whole video, best-first.
+
+    Plain ranking tends to return six clips from the same five minutes,
+    because that is where the streamer was loudest. This keeps a minimum
+    distance between picks so a three-hour stream yields moments from
+    across the run, then relaxes the spacing if the video is too short to
+    honour it.
+    """
+    if limit <= 1 or duration <= 0 or not cands:
+        return suppress(cands, limit, max_overlap)
+
+    ordered = sorted(cands, key=lambda c: c.score, reverse=True)
+    chosen: list[Candidate] = []
+    gap = duration / limit * 0.5
+
+    for _ in range(5):
+        for cand in ordered:
+            if len(chosen) >= limit:
+                break
+            if any(_overlap(cand.start, cand.end, c.start, c.end) > max_overlap
+                   for c in chosen):
+                continue
+            if any(abs(cand.start - c.start) < gap for c in chosen):
+                continue
+            chosen.append(cand)
+        if len(chosen) >= limit:
+            break
+        gap *= 0.5
+
+    # still short (very short video, or everything in one region): fill up
+    if len(chosen) < limit:
+        for cand in ordered:
+            if len(chosen) >= limit:
+                break
+            if any(_overlap(cand.start, cand.end, c.start, c.end) > max_overlap
+                   for c in chosen):
+                continue
+            chosen.append(cand)
+    return chosen
+
+
 def make_title(segments: list[Segment], cand: Candidate) -> str:
     text, _ = text_for_window(segments, cand.start, cand.end)
     if not text:
@@ -520,7 +567,11 @@ def select_clips(
     if progress:
         progress(0.85, "picking the best moments")
 
-    picked = suppress(cands, limit=max(1, settings.max_clips), max_overlap=0.3)
+    limit = max(1, settings.max_clips)
+    if settings.spread:
+        picked = spread_select(cands, limit, duration, max_overlap=0.3)
+    else:
+        picked = suppress(cands, limit=limit, max_overlap=0.3)
     starts, ends = _word_edges(segments)
     for cand in picked:
         snap_candidate(cand, starts, ends, duration, settings.min_clip,
